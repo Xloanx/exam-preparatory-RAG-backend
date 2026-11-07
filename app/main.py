@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.auth import router as auth_router
 from app.api.health import router as health_router
+from app.api.main import router as main_router
 from app.config import settings
 
 app = FastAPI(title=settings.APP_NAME, version="0.1.0")
@@ -15,9 +16,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(health_router, prefix=settings.API_V1_STR)
-app.include_router(auth_router, prefix="/auth")
+# app.include_router(health_router, prefix=settings.API_V1_STR)
+app.include_router(auth_router, prefix=settings.API_V1_STR)
 
+@app.get("/")
+async def main():
+    return "Exam Preparatory RAG running ..."
 
 @app.get("/health")
 async def health():
