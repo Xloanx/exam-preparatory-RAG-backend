@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import db
-from app.api.auth import get_current_admin, get_db
+from app.api.auth import get_current_admin, get_current_user, get_db
 from app.models.category import Category
 from app.models.user import User
 
@@ -29,6 +29,16 @@ def _to_out(category: Category) -> dict:
         "parent_id": category.parent_id,
         "description": category.description,
     }
+
+
+@router.get("/categories")
+async def list_categories(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict:
+    result = await session.execute(select(Category).order_by(Category.id))
+    categories = result.scalars().all()
+    return {"categories": [_to_out(c) for c in categories]}
 
 
 @router.post("/admin/categories")
