@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -14,7 +14,7 @@ class User(Base):
     password_hash = Column(String, nullable=True)
     auth_provider = Column(String, default="email")
     full_name = Column(String, nullable=True)
-    current_category_id = Column(Integer, nullable=True)
+    current_category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
     roles = Column(String, default="USER")
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)

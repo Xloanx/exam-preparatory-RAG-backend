@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from jose import JWTError, jwt
@@ -29,7 +29,7 @@ class LoginRequest(BaseModel):
 
 
 def create_access_token(subject: str) -> str:
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     payload = {
         "sub": subject,
         "iat": int(now.timestamp()),
@@ -58,7 +58,7 @@ async def get_db():
 
 
 async def get_current_user(
-    token: str = Header(alias="Authorization"),
+    token: str | None = Header(default=None, alias="Authorization"),
     session: AsyncSession = Depends(get_db),
 ) -> User:
     scheme, _, credentials = (token or "").partition(" ")
@@ -73,7 +73,21 @@ async def get_current_user(
     return user
 
 
-@router.post("/auth/register")
+def _user_is_admin(user: User) -> bool:
+    return bool(user.roles) and "ADMIN" in user.roles.upper().split(",")
+
+
+async def get_current_admin(user: User = Depends(get_current_user)) -> User:
+    if not _user_is_admin(user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required")
+    return user
+
+
+async def get_current_user_id(user: User = Depends(get_current_user)) -> int:
+    return user.id
+
+
+@router.post("/auth/register", status_code=201)
 async def register(payload: RegisterRequest, session: AsyncSession = Depends(get_db)):
     existing = (
         (await session.execute(select(User).where(User.email == payload.email))).scalar_one_or_none()

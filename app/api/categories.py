@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import db
-from app.api.auth import get_current_admin
+from app.api.auth import get_current_admin, get_db
 from app.models.category import Category
 from app.models.user import User
 
